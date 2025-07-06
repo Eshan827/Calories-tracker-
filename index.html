@@ -3,69 +3,60 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Calorie Tracker by Eshan</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#ffffff" />
-  <link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABzenr0AAAADElEQVR4nGNgGAWjYBSMAAABBQAB0SIUuwAAAABJRU5ErkJggg==" />
-  <script type="application/manifest+json">
-    {
-      "name": "Calorie Tracker by Eshan",
-      "short_name": "Calorie Tracker",
-      "start_url": "./index.html",
-      "display": "standalone",
-      "background_color": "#f9f9f9",
-      "theme_color": "#ffffff",
-      "icons": [
-        {
-          "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABzenr0AAAADElEQVR4nGNgGAWjYBSMAAABBQAB0SIUuwAAAABJRU5ErkJggg==",
-          "sizes": "192x192",
-          "type": "image/png"
-        },
-        {
-          "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABzenr0AAAADElEQVR4nGNgGAWjYBSMAAABBQAB0SIUuwAAAABJRU5ErkJggg==",
-          "sizes": "512x512",
-          "type": "image/png"
-        }
-      ]
-    }
-  </script>
+  <title>Calorie Tracker by Eshan</title>
+  <link rel="manifest" href="manifest.json">
   <style>
     body {
       font-family: sans-serif;
       padding: 20px;
-      max-width: 500px;
+      max-width: 600px;
       margin: auto;
-      background: #f9f9f9;
+      background: #f4f4f4;
     }
-    h1 { text-align: center; }
+    h1, h2 {
+      text-align: center;
+    }
     input, select, button {
+      display: block;
       width: 100%;
       padding: 10px;
       margin: 10px 0;
       font-size: 1em;
     }
-    ul { padding-left: 20px; }
-    li { margin-bottom: 8px; }
-    #suggestions div {
-      background: #fff;
-      border-bottom: 1px solid #ddd;
+    ul {
+      list-style-type: none;
+      padding: 0;
     }
-    #suggestions div:hover {
-      background-color: #eee;
+    li {
+      background: white;
+      margin-bottom: 8px;
+      padding: 10px;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .tdee-section {
+      background: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
     }
   </style>
 </head>
-
 <body>
-  <h2>Set Your Calorie Goal 🎯</h2>
-  <div id="setup">
-    <input type="number" id="age" placeholder="Age" />
+  <h1>Calorie Tracker by Eshan</h1>
+
+  <div class="tdee-section">
+    <h2>Set Your Goal</h2>
+    <input type="number" id="weight" placeholder="Weight (kg)" />
+    <input type="number" id="height" placeholder="Height (cm)" />
+    <input type="number" id="age" placeholder="Age (years)" />
     <select id="gender">
       <option value="male">Male</option>
       <option value="female">Female</option>
     </select>
-    <input type="number" id="weight" placeholder="Weight (kg)" />
-    <input type="number" id="height" placeholder="Height (cm)" />
     <select id="activity">
       <option value="1.2">Sedentary</option>
       <option value="1.375">Lightly active</option>
@@ -73,28 +64,23 @@
       <option value="1.725">Very active</option>
     </select>
     <select id="goal">
-      <option value="-500">Lose Weight</option>
-      <option value="0">Maintain</option>
-      <option value="500">Gain Weight</option>
+      <option value="maintain">Maintain</option>
+      <option value="lose">Lose Weight</option>
+      <option value="gain">Gain Weight</option>
     </select>
-    <button onclick="calculateTDEE()">Set Calorie Goal</button>
+    <button onclick="setTDEE()">Set Calorie Limit</button>
+    <p><strong>Daily Calorie Limit:</strong> <span id="dailyLimit">Not set</span> kcal</p>
   </div>
-  <h3 id="goalDisplay">Daily Goal: Not Set</h3>
-  <progress id="calorieProgress" value="0" max="100" style="width: 100%; height: 20px;"></progress>
-  <br />
 
-  <h1>Calorie Tracker by Eshan</h1>
-  <input type="text" id="foodName" placeholder="Search food..." oninput="showSuggestions()" autocomplete="off" />
-  <div id="suggestions" style="border:1px solid #ccc; display:none; max-height:150px; overflow-y:auto;"></div>
+  <input type="text" id="foodName" placeholder="Food Name (e.g. rice, egg)" />
   <input type="number" id="foodAmount" placeholder="Amount (e.g. 150)" />
   <select id="foodUnit">
     <option value="g">Grams (g)</option>
-    <option value="ml">Milliliters (ml)</option>
     <option value="piece">Pieces</option>
-    <option value="cup">Cup</option>
   </select>
   <input type="number" id="calories" placeholder="Calories (optional)" />
   <button onclick="addFood()">Add Food</button>
+
   <h2>Total: <span id="totalCalories">0</span> kcal</h2>
   <ul id="foodList"></ul>
 
@@ -104,74 +90,18 @@
       "chicken": { unit: "g", calPerUnit: 1.65 },
       "egg": { unit: "piece", calPerUnit: 70 },
       "chapati": { unit: "piece", calPerUnit: 100 },
-      "flatbread": { unit: "piece", calPerUnit: 120 },
-      "vegetable": { unit: "g", calPerUnit: 0.5 },
-      "fruit": { unit: "g", calPerUnit: 0.6 },
-      "snicker": { unit: "piece", calPerUnit: 104 },
       "apple": { unit: "piece", calPerUnit: 95 },
       "banana": { unit: "piece", calPerUnit: 105 },
       "mango": { unit: "piece", calPerUnit: 150 },
+      "papaya": { unit: "g", calPerUnit: 0.43 },
       "watermelon": { unit: "g", calPerUnit: 0.3 },
       "melon": { unit: "g", calPerUnit: 0.34 },
-      "papaya": { unit: "g", calPerUnit: 0.43 },
-      "steam momo": { unit: "piece", calPerUnit: 35 },
-      "schezwan momo": { unit: "piece", calPerUnit: 55 }
+      "snicker": { unit: "piece", calPerUnit: 104 },
+      "steam momo": { unit: "piece", calPerUnit: 45 },
+      "schezwan momo": { unit: "piece", calPerUnit: 60 }
     };
 
-    let total = 0;
-    let foodList = [];
-
-    function getTodayKey() {
-      const today = new Date();
-      return `fittrack_` + today.toISOString().slice(0, 10);
-    }
-
-    
-    let calorieGoal = parseInt(localStorage.getItem("calorieGoal")) || 0;
-
-    function calculateTDEE() {
-      const age = parseInt(document.getElementById("age").value);
-      const gender = document.getElementById("gender").value;
-      const weight = parseFloat(document.getElementById("weight").value);
-      const height = parseFloat(document.getElementById("height").value);
-      const activity = parseFloat(document.getElementById("activity").value);
-      const goal = parseInt(document.getElementById("goal").value);
-
-      if (!age || !weight || !height || !activity) {
-        alert("Please enter all values.");
-        return;
-      }
-
-      let bmr;
-      if (gender === "male") {
-        bmr = 10 * weight + 6.25 * height - 5 * age + 5;
-      } else {
-        bmr = 10 * weight + 6.25 * height - 5 * age - 161;
-      }
-
-      const tdee = Math.round(bmr * activity);
-      calorieGoal = tdee + goal;
-
-      localStorage.setItem("calorieGoal", calorieGoal);
-      updateGoalUI();
-    }
-
-    function updateGoalUI() {
-      document.getElementById("goalDisplay").innerText = "Daily Goal: " + calorieGoal + " kcal";
-      document.getElementById("calorieProgress").max = calorieGoal;
-      document.getElementById("calorieProgress").value = total;
-    }
-
-window.onload = () => {
-  updateGoalUI();
-      const saved = localStorage.getItem(getTodayKey());
-      if (saved) {
-        const data = JSON.parse(saved);
-        total = data.total || 0;
-        foodList = data.foodList || [];
-        updateUI();
-      }
-    };
+    let total = 0, foodList = [], calorieLimit = 0;
 
     function addFood() {
       const rawName = document.getElementById("foodName").value.trim().toLowerCase();
@@ -179,41 +109,20 @@ window.onload = () => {
       const unit = document.getElementById("foodUnit").value;
       const manualCal = parseFloat(document.getElementById("calories").value);
 
-      if (!rawName || isNaN(amount)) {
-        alert("Please enter valid food name and amount.");
-        return;
-      }
+      if (!rawName || isNaN(amount)) return alert("Enter valid name and amount.");
 
-      const foodName = rawName.endsWith("s") ? rawName.slice(0, -1) : rawName;
-      const entry = foodDB[foodName];
+      const name = rawName.endsWith("s") ? rawName.slice(0, -1) : rawName;
+      const entry = foodDB[name];
 
-      let calories = 0;
+      let cal = 0;
+      if (entry && entry.unit === unit) cal = amount * entry.calPerUnit;
+      else if (entry && entry.unit !== unit) return alert(`${name} should be in ${entry.unit}.`);
+      else if (!entry && !isNaN(manualCal)) cal = manualCal;
+      else return alert("Not in database. Add calories manually.");
 
-      if (entry && entry.unit === unit) {
-        calories = amount * entry.calPerUnit;
-      } else if (entry && entry.unit !== unit) {
-        alert(`⚠️ ${foodName} should be in ${entry.unit}.`);
-        return;
-      } else if (!entry && !isNaN(manualCal)) {
-        calories = manualCal;
-      } else {
-        alert("Not in database. Please enter calories manually.");
-        return;
-      }
-
-      total += calories;
-      foodList.push({ name: `${amount}${unit} ${foodName}`, cal: calories });
-      saveData();
+      total += cal;
+      foodList.push({ name: `${amount}${unit} ${name}`, cal });
       updateUI();
-
-      document.getElementById("foodName").value = "";
-      document.getElementById("foodAmount").value = "";
-      document.getElementById("calories").value = "";
-      document.getElementById("suggestions").style.display = "none";
-    }
-
-    function saveData() {
-      localStorage.setItem(getTodayKey(), JSON.stringify({ total, foodList }));
     }
 
     function updateUI() {
@@ -222,63 +131,35 @@ window.onload = () => {
       list.innerHTML = "";
       foodList.forEach((item, i) => {
         const li = document.createElement("li");
-        li.innerHTML = `${item.name} - ${item.cal.toFixed(2)} kcal 
-          <button onclick="deleteFood(${i})">🗑</button>`;
+        li.innerHTML = `${item.name} - ${item.cal.toFixed(2)} kcal <button onclick="removeFood(${i})">🗑</button>`;
         list.appendChild(li);
       });
     }
 
-    function deleteFood(index) {
+    function removeFood(index) {
       total -= foodList[index].cal;
       foodList.splice(index, 1);
-      saveData();
       updateUI();
     }
 
-    function showSuggestions() {
-      const input = document.getElementById("foodName").value.trim().toLowerCase();
-      const suggestionsBox = document.getElementById("suggestions");
-      suggestionsBox.innerHTML = "";
-      suggestionsBox.style.display = "none";
+    function setTDEE() {
+      const w = parseFloat(document.getElementById("weight").value);
+      const h = parseFloat(document.getElementById("height").value);
+      const a = parseFloat(document.getElementById("age").value);
+      const g = document.getElementById("gender").value;
+      const activity = parseFloat(document.getElementById("activity").value);
+      const goal = document.getElementById("goal").value;
 
-      if (input.length === 0) return;
+      if (isNaN(w) || isNaN(h) || isNaN(a)) return alert("Fill all fields.");
 
-      const matches = Object.keys(foodDB).filter(food => food.includes(input));
-      if (matches.length === 0) return;
+      let bmr = g === "male" ? (10 * w + 6.25 * h - 5 * a + 5) : (10 * w + 6.25 * h - 5 * a - 161);
+      let tdee = bmr * activity;
 
-      matches.forEach(food => {
-        const div = document.createElement("div");
-        div.innerText = food;
-        div.style.padding = "8px";
-        div.style.cursor = "pointer";
-        div.onclick = () => {
-          document.getElementById("foodName").value = food;
-          suggestionsBox.style.display = "none";
-        };
-        suggestionsBox.appendChild(div);
-      });
+      if (goal === "lose") tdee -= 500;
+      if (goal === "gain") tdee += 500;
 
-      suggestionsBox.style.display = "block";
-    }
-  </script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register(URL.createObjectURL(new Blob([`
-        const CACHE_NAME = "eshan-tracker-pwa";
-        const urlsToCache = [location.href];
-
-        self.addEventListener("install", event => {
-          event.waitUntil(
-            caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
-          );
-        });
-
-        self.addEventListener("fetch", event => {
-          event.respondWith(
-            caches.match(event.request).then(resp => resp || fetch(event.request))
-          );
-        });
-      `], { type: "text/javascript" })));
+      calorieLimit = tdee;
+      document.getElementById("dailyLimit").innerText = calorieLimit.toFixed(0);
     }
   </script>
 </body>
