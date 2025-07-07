@@ -1,0 +1,260 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🍏 Calorie Tracker by Eshan</title>
+  <style>
+    :root {
+      --bg: #e6ffe6;
+      --text: #1a1a1a;
+      --card: #ffffff;
+      --accent: #34c759;
+    }
+    [data-theme="dark"] {
+      --bg: #1e1e1e;
+      --text: #f5f5f5;
+      --card: #2e2e2e;
+      --accent: #4cd964;
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+    h1 {
+      text-align: center;
+    }
+    .card {
+      background: var(--card);
+      padding: 20px;
+      border-radius: 12px;
+      margin: 20px auto;
+      max-width: 600px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    input, select, button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1em;
+    }
+    button {
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    button:hover {
+      transform: scale(1.03);
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      background: var(--card);
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .toggle-theme {
+      text-align: right;
+    }
+    .small {
+      font-size: 0.9em;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <div class="toggle-theme">
+    <label><input type="checkbox" id="darkToggle"> Dark Mode</label>
+  </div>
+
+  <h1>🍏 Calorie Tracker by Eshan</h1>
+
+  <div class="card">
+    <h2>Set Your Info</h2>
+    <input type="number" id="weight" placeholder="Weight (kg)" />
+    <input type="number" id="height" placeholder="Height (cm)" />
+    <input type="number" id="age" placeholder="Age (yrs)" />
+    <select id="gender">
+      <option value="male">Male</option>
+      <option value="female">Female</option>
+    </select>
+    <select id="activity">
+      <option value="1.2">Sedentary</option>
+      <option value="1.375">Lightly active</option>
+      <option value="1.55">Moderately active</option>
+      <option value="1.725">Very active</option>
+    </select>
+    <select id="goal">
+      <option value="maintain">Maintain</option>
+      <option value="lose">Lose</option>
+      <option value="gain">Gain</option>
+    </select>
+    <button onclick="setTDEE()">Set Calorie Goal</button>
+    <p><strong>Daily Limit:</strong> <span id="dailyLimit">Not set</span> kcal</p>
+  </div>
+
+  <div class="card">
+    <h2>Add Food</h2>
+    <input type="text" id="foodName" placeholder="Food (e.g. pizza, rice)" />
+    <input type="number" id="foodAmount" placeholder="Amount (100)" />
+    <select id="foodUnit">
+      <option value="g">Grams</option>
+      <option value="piece">Pieces</option>
+    </select>
+    <input type="number" id="calories" placeholder="Calories (if unknown)" />
+    <button onclick="addFood()">Add Food</button>
+  </div>
+
+  <div class="card">
+    <h2>Today’s Total: <span id="totalCalories">0</span> kcal</h2>
+    <ul id="foodList"></ul>
+    <button onclick="saveDay()">📅 Save Day</button>
+  </div>
+
+  <div class="card">
+    <h2>Weight Tracker</h2>
+    <input type="date" id="logDate" />
+    <input type="number" id="logWeight" placeholder="Your weight (kg)" />
+    <button onclick="addWeight()">Log Weight</button>
+    <ul id="weightLogs"></ul>
+  </div>
+
+  <div class="card">
+    <h2>History</h2>
+    <ul id="historyList"></ul>
+  </div>
+
+  <script>
+    const foodDB = {
+      "rice": {unit:"g", calPerUnit:1.3}, "chicken": {unit:"g", calPerUnit:1.65},
+      "egg": {unit:"piece", calPerUnit:70}, "chapati": {unit:"piece", calPerUnit:100},
+      "apple": {unit:"piece", calPerUnit:95}, "banana": {unit:"piece", calPerUnit:105},
+      "mango": {unit:"piece", calPerUnit:150}, "pizza": {unit:"piece", calPerUnit:285},
+      "burger": {unit:"piece", calPerUnit:295}, "sandwich": {unit:"piece", calPerUnit:250},
+      "fries": {unit:"g", calPerUnit:3.1}, "chocolate": {unit:"g", calPerUnit:5.4},
+      "ice cream": {unit:"g", calPerUnit:2.1}, "snicker": {unit:"piece", calPerUnit:104},
+      "steam momo": {unit:"piece", calPerUnit:45}, "schezwan momo": {unit:"piece", calPerUnit:60},
+      "chips": {unit:"g", calPerUnit:5.3}, "lays": {unit:"g", calPerUnit:5.4}
+    };
+
+    let total = 0, foodList = [], calorieLimit = 0;
+
+    const todayKey = () => 'track_' + new Date().toISOString().slice(0,10);
+
+    function setTDEE() {
+      const w = parseFloat(weight.value), h = parseFloat(height.value),
+            a = parseFloat(age.value), g = gender.value, act = parseFloat(activity.value),
+            goal = document.getElementById("goal").value;
+      if (isNaN(w)||isNaN(h)||isNaN(a)) return alert("Fill all fields.");
+      let bmr = g==="male" ? (10*w + 6.25*h - 5*a + 5) : (10*w + 6.25*h - 5*a - 161);
+      let tdee = bmr * act;
+      if (goal==="lose") tdee -= 500;
+      if (goal==="gain") tdee += 500;
+      calorieLimit = tdee;
+      dailyLimit.innerText = calorieLimit.toFixed(0);
+      localStorage.setItem("eshan_limit", calorieLimit);
+    }
+
+    function addFood() {
+      const raw = foodName.value.toLowerCase().trim(), amt = parseFloat(foodAmount.value);
+      const unit = foodUnit.value, manual = parseFloat(calories.value);
+      if (!raw || isNaN(amt)) return alert("Invalid entry");
+      const name = raw.endsWith("s") ? raw.slice(0, -1) : raw;
+      const entry = foodDB[name];
+      let cal = 0;
+      if (entry && entry.unit === unit) cal = amt * entry.calPerUnit;
+      else if (!isNaN(manual)) cal = manual;
+      else return alert("Not found. Enter calories manually.");
+      total += cal;
+      foodList.push({ name: `${amt}${unit} ${name}`, cal });
+      updateFoodList();
+    }
+
+    function updateFoodList() {
+      totalCalories.innerText = total.toFixed(1);
+      foodListEl.innerHTML = "";
+      foodList.forEach((f, i) => {
+        const li = document.createElement("li");
+        li.innerHTML = `${f.name} - ${f.cal.toFixed(1)} kcal <button onclick="delFood(${i})">❌</button>`;
+        foodListEl.appendChild(li);
+      });
+    }
+
+    function delFood(i) {
+      total -= foodList[i].cal;
+      foodList.splice(i, 1);
+      updateFoodList();
+    }
+
+    function saveDay() {
+      const key = todayKey();
+      localStorage.setItem(key, JSON.stringify({total, foodList}));
+      updateHistory();
+      alert("Day saved!");
+    }
+
+    function updateHistory() {
+      historyList.innerHTML = "";
+      Object.keys(localStorage).forEach(k => {
+        if (k.startsWith("track_")) {
+          const d = JSON.parse(localStorage[k]);
+          const li = document.createElement("li");
+          li.textContent = `${k.slice(6)}: ${d.total.toFixed(1)} kcal`;
+          historyList.appendChild(li);
+        }
+      });
+    }
+
+    function addWeight() {
+      const d = logDate.value, w = parseFloat(logWeight.value);
+      if (!d || isNaN(w)) return alert("Fill weight & date");
+      const logs = JSON.parse(localStorage.getItem("eshan_weights") || "[]");
+      logs.push({date: d, weight: w});
+      localStorage.setItem("eshan_weights", JSON.stringify(logs));
+      updateWeights();
+    }
+
+    function updateWeights() {
+      const logs = JSON.parse(localStorage.getItem("eshan_weights") || "[]");
+      weightLogs.innerHTML = "";
+      logs.forEach(log => {
+        const li = document.createElement("li");
+        li.textContent = `${log.date}: ${log.weight} kg`;
+        weightLogs.appendChild(li);
+      });
+    }
+
+    darkToggle.addEventListener("change", () => {
+      document.documentElement.setAttribute("data-theme", darkToggle.checked ? "dark" : "light");
+    });
+
+    const foodListEl = document.getElementById("foodList");
+
+    window.onload = () => {
+      const limit = localStorage.getItem("eshan_limit");
+      if (limit) {
+        calorieLimit = parseFloat(limit);
+        dailyLimit.innerText = calorieLimit.toFixed(0);
+      }
+      updateHistory();
+      updateWeights();
+    };
+  </script>
+</body>
+</html>
