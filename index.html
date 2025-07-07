@@ -1,0 +1,167 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Calorie Tracker By Eshan 🍏</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #f3f6fd;
+      --glass: rgba(255, 255, 255, 0.2);
+      --text: #222;
+      --accent: #4caf50;
+      --radius: 1.5rem;
+    }
+    * {
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.3s;
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      padding-bottom: 100px;
+    }
+    header {
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 1.8rem;
+      font-weight: 600;
+    }
+    .container {
+      padding: 1rem;
+    }
+    .card {
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      border-radius: var(--radius);
+      margin-bottom: 1rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .card h2 {
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+    }
+    .progress-bar {
+      background: #ddd;
+      border-radius: 1rem;
+      height: 20px;
+      overflow: hidden;
+    }
+    .progress {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+    }
+    nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      display: flex;
+      justify-content: space-around;
+      padding: 1rem;
+      border-top: 1px solid #ccc;
+    }
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: var(--radius);
+      background: var(--accent);
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .fab {
+      position: fixed;
+      bottom: 90px;
+      right: 20px;
+      background: var(--accent);
+      color: white;
+      font-size: 2rem;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    #modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4);
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-content {
+      background: white;
+      padding: 1rem;
+      border-radius: var(--radius);
+      width: 90%;
+      max-width: 400px;
+    }
+    .search {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+      border-radius: var(--radius);
+      border: 1px solid #ccc;
+    }
+    .food-list button {
+      display: block;
+      width: 100%;
+      padding: 0.5rem;
+      margin: 0.3rem 0;
+      background: #f1f1f1;
+      border: none;
+      border-radius: 0.5rem;
+      text-align: left;
+      cursor: pointer;
+    }
+    .meal-buttons button {
+      margin: 0.2rem;
+      padding: 0.5rem;
+    }
+    canvas { max-width: 100%; margin: 1rem 0; }
+  </style>
+</head>
+<body>
+  <header>Smart Calorie Tracker By Eshan 🍏</header>
+  <div class="container">
+    <!-- all your existing cards will go here (unchanged) -->
+  </div>
+  <div class="fab" onclick="openModal()">+</div>
+  <nav>
+    <button class="btn" onclick="logWater()">💧 Water</button>
+    <button class="btn" onclick="logSteps(true)">🚶 Steps</button>
+    <button class="btn" onclick="resetDay()">🔄 Reset</button>
+  </nav>
+  <div id="modal">
+    <div class="modal-content">
+      <input class="search" type="text" placeholder="Search food..." oninput="filterFoods(this.value)">
+      <div class="food-list" id="foodList"></div>
+    </div>
+  </div>
+<script>
+const foodDB = {
+  "rice": { kcal: 1.03, protein: 0.02, carbs: 0.23, fats: 0.002, vitamins: "B1", unit: "g" },
+  "egg": { kcal: 70, protein: 6, carbs: 1, fats: 5, vitamins: "D,B12", unit: "serving" },
+  "banana": { kcal: 0.89, protein: 0.01, carbs: 0.23, fats: 0.003, vitamins: "B6,C", unit: "g" },
+  "burger": { kcal: 354, protein: 17, carbs: 29, fats: 17, vitamins: "B6,B12", unit: "serving" },
+  "pizza": { kcal: 285, protein: 12, carbs: 36, fats: 10, vitamins: "A,B12", unit: "serving" }
+};function filterFoods(query) { const list = document.getElementById("foodList"); list.innerHTML = ""; for (let name in foodDB) { if (name.includes(query.toLowerCase())) { const btn = document.createElement("button"); btn.textContent = ${name} (${foodDB[name].kcal}${foodDB[name].unit === 'g' ? ' kcal/g' : ' kcal'}); btn.onclick = () => showMealOptions(name); list.appendChild(btn); } } }
+
+function showMealOptions(food) { const meals = ["breakfast", "lunch", "dinner", "snacks"]; const box = document.createElement("div"); box.innerHTML = <p>Add <b>${food}</b> to:</p>; box.className = 'meal-buttons'; meals.forEach(m => { const b = document.createElement("button"); b.textContent = m; b.className = 'btn'; b.onclick = () => { const f = foodDB[food]; const unit = f.unit === "g" ? "grams" : "servings"; const qty = parseFloat(prompt(How many ${unit} of ${food}?)); if (!isNaN(qty)) addFoodToMeal(food, m, qty); closeModal(); }; box.appendChild(b); }); document.getElementById("foodList").innerHTML = ""; document.getElementById("foodList").appendChild(box); }
+
+function addFoodToMeal(food, meal, quantity) { const f = foodDB[food]; const unitLabel = f.unit === 'g' ? 'g' : 'x'; const label = ${quantity}${unitLabel} ${food} (${(f.kcal * quantity).toFixed(0)} kcal); data.calories += f.kcal * quantity; data.macros.protein += f.protein * quantity; data.macros.carbs += f.carbs * quantity; data.macros.fats += f.fats * quantity; data.macros.vitamins.push(...f.vitamins.split(',')); data.meals[meal] += label + ", "; saveData(); } </script>
+
+</body>
+</html>
