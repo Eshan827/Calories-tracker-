@@ -1,65 +1,91 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Calories Tracker 🍏</title>
   <link rel="icon" href="https://emojicdn.elk.sh/🍏">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Poppins:wght@400;600&family=Rubik:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Poppins:wght@400;600&family=Rubik&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #eafaf1;
+      --bg: #f3f6fd;
       --glass: rgba(255, 255, 255, 0.2);
-      --text: #222;
-      --accent: #4caf50;
-    }
-    [data-theme="dark"] {
-      --bg: #121212;
-      --glass: rgba(255, 255, 255, 0.1);
-      --text: #eee;
-      --accent: #90caf9;
-    }
-    [data-theme="pink"] {
-      --bg: #fff0f5;
-      --glass: rgba(255, 255, 255, 0.4);
       --text: #333;
-      --accent: #ff69b4;
+      --accent: #4caf50;
+      --radius: 2rem;
     }
-    [data-theme="high"] {
-      --bg: #fff;
-      --glass: #000;
-      --text: #000;
-      --accent: #ff0000;
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', 'Rubik', 'Poppins', sans-serif;
+      transition: all 0.3s ease;
     }
     body {
-      margin: 0;
-      font-family: 'Poppins', sans-serif;
       background: var(--bg);
       color: var(--text);
-      transition: all 0.3s ease;
-      padding-bottom: 80px;
+      min-height: 100vh;
+      padding-bottom: 100px;
     }
     header {
       text-align: center;
-      font-size: 1.6rem;
+      padding: 2rem 1rem;
+      font-size: 2rem;
       font-weight: 600;
-      padding: 1rem;
-      animation: pop 1s ease-in-out;
+      animation: slideDown 1s ease;
     }
-    @keyframes pop {
-      0% { transform: scale(0.8); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
+    @keyframes slideDown {
+      from { transform: translateY(-30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
-    .section {
-      margin: 1rem;
+    .container {
+      display: grid;
+      gap: 1rem;
       padding: 1rem;
+    }
+    .card {
       background: var(--glass);
-      border-radius: 20px;
-      backdrop-filter: blur(15px);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      backdrop-filter: blur(20px);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      padding: 1rem;
     }
-    .section h2 {
-      margin-top: 0;
+    .card h2 {
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+    }
+    .progress-bar {
+      background: #ddd;
+      border-radius: 1rem;
+      overflow: hidden;
+      height: 20px;
+      margin-top: 0.5rem;
+    }
+    .progress {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+    }
+    .btn {
+      background: var(--accent);
+      color: white;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-weight: 600;
+      margin-top: 1rem;
+    }
+    nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      display: flex;
+      justify-content: space-around;
+      padding: 1rem;
+      border-top: 1px solid #ccc;
     }
     .fab {
       position: fixed;
@@ -67,105 +93,110 @@
       right: 20px;
       background: var(--accent);
       color: white;
-      border: none;
       border-radius: 50%;
-      width: 56px;
-      height: 56px;
-      font-size: 24px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
-    .fab:hover {
-      transform: scale(1.1);
-    }
-    .navbar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
+      width: 60px;
+      height: 60px;
       display: flex;
-      justify-content: space-around;
-      background: var(--glass);
-      backdrop-filter: blur(10px);
-      border-top: 1px solid rgba(255,255,255,0.2);
-      padding: 0.6rem 0;
-    }
-    .navbar button {
-      background: none;
-      border: none;
-      font-size: 1.2rem;
-      color: var(--text);
-    }
-    .theme-switcher {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      display: flex;
-      gap: 0.4rem;
-    }
-    .theme-switcher button {
-      font-size: 1.2rem;
-      background: none;
-      border: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
       cursor: pointer;
-      transition: transform 0.2s;
-    }
-    .theme-switcher button:hover {
-      transform: scale(1.2);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     }
   </style>
 </head>
-<body data-theme="green">
-  <header>Calories Tracker 🍏</header>
+<body>
+  <header>Calories Tracker 🍏</header>  <div class="container">
+    <div class="card">
+      <h2>Today's Calories</h2>
+      <div class="progress-bar">
+        <div class="progress" id="calorieProgress"></div>
+      </div>
+      <div id="calorieInfo">0 / 2000 kcal</div>
+    </div><div class="card" id="foodLog">
+  <h2>Meals</h2>
+  <div>🍳 Breakfast: <span id="breakfast"></span></div>
+  <div>🍔 Lunch: <span id="lunch"></span></div>
+  <div>🍕 Dinner: <span id="dinner"></span></div>
+  <div>🍪 Snacks: <span id="snacks"></span></div>
+</div>
 
-  <div class="theme-switcher">
-    <button onclick="setTheme('green')">🍃</button>
-    <button onclick="setTheme('dark')">🌑</button>
-    <button onclick="setTheme('pink')">🌸</button>
-    <button onclick="setTheme('high')">⚡</button>
-  </div>
+<div class="card">
+  <h2>Water Intake 💧</h2>
+  <div id="water">0 glasses</div>
+</div>
 
-  <div class="section">
-    <h2>Breakfast 🍳</h2>
-    <p>No food logged yet.</p>
-  </div>
+<div class="card">
+  <h2>Steps 🚶</h2>
+  <div id="steps">0 steps</div>
+</div>
 
-  <div class="section">
-    <h2>Lunch 🍛</h2>
-    <p>No food logged yet.</p>
-  </div>
+<div class="card">
+  <h2>Macros & Nutrients 🥦</h2>
+  <div>Protein: <span id="protein">0g</span></div>
+  <div>Carbs: <span id="carbs">0g</span></div>
+  <div>Fats: <span id="fats">0g</span></div>
+  <div>Vitamins: <span id="vitamins">-</span></div>
+</div>
 
-  <div class="section">
-    <h2>Dinner 🍲</h2>
-    <p>No food logged yet.</p>
-  </div>
+  </div>  <div class="fab" onclick="addFood()">+</div>  <nav>
+    <button class="btn" onclick="logWater()">💧 Water</button>
+    <button class="btn" onclick="logSteps()">🚶 Steps</button>
+    <button class="btn" onclick="resetDay()">🔄 Reset</button>
+  </nav>  <script>
+    let calories = 0, water = 0, steps = 0;
+    const maxCalories = 2000;
+    const foodSections = { breakfast: '', lunch: '', dinner: '', snacks: '' };
+    const macros = { protein: 0, carbs: 0, fats: 0, vitamins: '-' };
 
-  <div class="section">
-    <h2>Snacks 🍪</h2>
-    <p>No food logged yet.</p>
-  </div>
-
-  <button class="fab" onclick="alert('Add Food button clicked')">+</button>
-
-  <div class="navbar">
-    <button title="Food">🍽️</button>
-    <button title="Water">💧</button>
-    <button title="Steps">🚶</button>
-    <button title="Weight">⚖️</button>
-    <button title="Settings">⚙️</button>
-  </div>
-
-  <script>
-    function setTheme(theme) {
-      document.body.setAttribute('data-theme', theme);
-      localStorage.setItem('theme', theme);
+    function updateUI() {
+      document.getElementById('calorieProgress').style.width = `${(calories / maxCalories) * 100}%`;
+      document.getElementById('calorieInfo').textContent = `${calories} / ${maxCalories} kcal`;
+      document.getElementById('water').textContent = `${water} glasses`;
+      document.getElementById('steps').textContent = `${steps} steps`;
+      for (let section in foodSections) {
+        document.getElementById(section).textContent = foodSections[section];
+      }
+      document.getElementById('protein').textContent = macros.protein + 'g';
+      document.getElementById('carbs').textContent = macros.carbs + 'g';
+      document.getElementById('fats').textContent = macros.fats + 'g';
+      document.getElementById('vitamins').textContent = macros.vitamins;
     }
-    window.onload = () => {
-      const saved = localStorage.getItem('theme');
-      if (saved) setTheme(saved);
+
+    function addFood() {
+      const food = prompt("Enter food (e.g. Egg - 70 kcal - 6p/1c/5f):");
+      if (!food) return;
+      const [name, kcal, macro] = food.split('-').map(f => f.trim());
+      const [p, c, f] = macro.toLowerCase().split('/').map(v => parseInt(v));
+      calories += parseInt(kcal);
+      macros.protein += p;
+      macros.carbs += c;
+      macros.fats += f;
+      const section = prompt("Which meal? (breakfast/lunch/dinner/snacks)").toLowerCase();
+      if (foodSections[section] !== undefined) {
+        foodSections[section] += `${name} (${kcal} kcal), `;
+      }
+      updateUI();
     }
-  </script>
-</body>
+
+    function logWater() {
+      water++;
+      updateUI();
+    }
+
+    function logSteps() {
+      steps += parseInt(prompt("Enter steps walked:")) || 0;
+      updateUI();
+    }
+
+    function resetDay() {
+      if (!confirm("Reset all data for today?")) return;
+      calories = water = steps = 0;
+      for (let k in foodSections) foodSections[k] = '';
+      for (let k in macros) macros[k] = (k === 'vitamins') ? '-' : 0;
+      updateUI();
+    }
+
+    updateUI();
+  </script></body>
 </html>
-
