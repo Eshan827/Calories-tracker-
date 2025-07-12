@@ -1,0 +1,192 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calorie Tracker by Eshan</title>
+  <link rel="icon" href="🔥" />
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      color: #333;
+      padding: 20px;
+      max-width: 700px;
+      margin: auto;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    .section {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    input, select, button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 1em;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #ff6f61;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+    }
+    button:hover {
+      background-color: #e65c50;
+    }
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    li {
+      background: #fff;
+      margin-bottom: 8px;
+      padding: 10px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    #searchBar {
+      margin-top: 10px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔥 Calorie Tracker by Eshan</h1>
+
+  <div class="section">
+    <h2>Set Your Goal</h2>
+    <input type="number" id="weight" placeholder="Weight (kg)" />
+    <input type="number" id="height" placeholder="Height (cm)" />
+    <input type="number" id="age" placeholder="Age (years)" />
+    <select id="gender">
+      <option value="male">Male</option>
+      <option value="female">Female</option>
+    </select>
+    <select id="activity">
+      <option value="1.2">Sedentary</option>
+      <option value="1.375">Lightly active</option>
+      <option value="1.55">Moderately active</option>
+      <option value="1.725">Very active</option>
+    </select>
+    <select id="goal">
+      <option value="maintain">Maintain</option>
+      <option value="lose">Lose</option>
+      <option value="gain">Gain</option>
+    </select>
+    <button onclick="setTDEE()">Set Calorie Limit</button>
+    <p><strong>Daily Calorie Limit:</strong> <span id="dailyLimit">Not set</span> kcal</p>
+  </div>
+
+  <div class="section">
+    <input type="text" id="searchBar" placeholder="Search Food..." oninput="filterFoods()">
+    <input type="text" id="foodName" placeholder="Food Name (e.g. rice, pizza)" />
+    <input type="number" id="foodAmount" placeholder="Amount (e.g. 100)" />
+    <select id="foodUnit">
+      <option value="g">Grams (g)</option>
+      <option value="piece">Pieces</option>
+    </select>
+    <input type="number" id="calories" placeholder="Calories (optional)" />
+    <button onclick="addFood()">Add Food</button>
+  </div>
+
+  <h2>Total: <span id="totalCalories">0</span> kcal</h2>
+  <ul id="foodList"></ul>
+
+  <script>
+    const foodDB = {
+      "rice": { unit: "g", calPerUnit: 1.3 }, "chicken": { unit: "g", calPerUnit: 1.65 },
+      "egg": { unit: "piece", calPerUnit: 70 }, "chapati": { unit: "piece", calPerUnit: 100 },
+      "apple": { unit: "piece", calPerUnit: 95 }, "banana": { unit: "piece", calPerUnit: 105 },
+      "mango": { unit: "piece", calPerUnit: 150 }, "papaya": { unit: "g", calPerUnit: 0.43 },
+      "watermelon": { unit: "g", calPerUnit: 0.3 }, "melon": { unit: "g", calPerUnit: 0.34 },
+      "snicker": { unit: "piece", calPerUnit: 104 }, "steam momo": { unit: "piece", calPerUnit: 45 },
+      "schezwan momo": { unit: "piece", calPerUnit: 60 }, "chips": { unit: "g", calPerUnit: 5.3 },
+      "lays": { unit: "g", calPerUnit: 5.4 }, "pizza slice": { unit: "piece", calPerUnit: 285 },
+      "burger": { unit: "piece", calPerUnit: 295 }, "sandwich": { unit: "piece", calPerUnit: 250 },
+      "fries": { unit: "g", calPerUnit: 3.1 }, "chocolate": { unit: "g", calPerUnit: 5.4 },
+      "cake": { unit: "g", calPerUnit: 3.8 }, "biscuit": { unit: "piece", calPerUnit: 52 },
+      "ice cream": { unit: "g", calPerUnit: 2.1 }
+    };
+
+    let total = 0, foodList = [], calorieLimit = 0;
+
+    function addFood() {
+      const rawName = document.getElementById("foodName").value.trim().toLowerCase();
+      const amount = parseFloat(document.getElementById("foodAmount").value);
+      const unit = document.getElementById("foodUnit").value;
+      const manualCal = parseFloat(document.getElementById("calories").value);
+      if (!rawName || isNaN(amount)) return alert("Enter valid name and amount.");
+      const name = rawName.endsWith("s") ? rawName.slice(0, -1) : rawName;
+      const entry = foodDB[name];
+      let cal = 0;
+      if (entry && entry.unit === unit) cal = amount * entry.calPerUnit;
+      else if (entry && entry.unit !== unit) return alert(`${name} should be in ${entry.unit}.`);
+      else if (!entry && !isNaN(manualCal)) cal = manualCal;
+      else return alert("Not in database. Add calories manually.");
+      total += cal;
+      foodList.push({ name: `${amount}${unit} ${name}`, cal });
+      updateUI();
+    }
+
+    function updateUI() {
+      document.getElementById("totalCalories").innerText = total.toFixed(2);
+      const list = document.getElementById("foodList");
+      list.innerHTML = "";
+      foodList.forEach((item, i) => {
+        const li = document.createElement("li");
+        li.innerHTML = `${item.name} - ${item.cal.toFixed(2)} kcal <button onclick="removeFood(${i})">🗑</button>`;
+        list.appendChild(li);
+      });
+    }
+
+    function removeFood(index) {
+      total -= foodList[index].cal;
+      foodList.splice(index, 1);
+      updateUI();
+    }
+
+    function setTDEE() {
+      const w = parseFloat(document.getElementById("weight").value);
+      const h = parseFloat(document.getElementById("height").value);
+      const a = parseFloat(document.getElementById("age").value);
+      const g = document.getElementById("gender").value;
+      const activity = parseFloat(document.getElementById("activity").value);
+      const goal = document.getElementById("goal").value;
+      if (isNaN(w) || isNaN(h) || isNaN(a)) return alert("Fill all fields.");
+      let bmr = g === "male" ? (10 * w + 6.25 * h - 5 * a + 5) : (10 * w + 6.25 * h - 5 * a - 161);
+      let tdee = bmr * activity;
+      if (goal === "lose") tdee -= 500;
+      if (goal === "gain") tdee += 500;
+      calorieLimit = tdee;
+      
+  localStorage.setItem("eshan_daily_limit", calorieLimit);
+  document.getElementById("dailyLimit").innerText = calorieLimit.toFixed(0);
+
+    }
+
+    function filterFoods() {
+      const searchTerm = document.getElementById("searchBar").value.toLowerCase();
+      const options = Object.keys(foodDB).filter(food => food.includes(searchTerm));
+      if (searchTerm && options.length) {
+        document.getElementById("foodName").value = options[0];
+      }
+    }
+  </script>
+</body>
+</html>
